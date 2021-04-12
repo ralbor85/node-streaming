@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server</title>
+</head>
+<body>
+    <p>Servidor Streaming</p>
+    <video id="video"></video>
+    <canvas id="canvas" width="1000" height="600"></canvas>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        (function (d, n, w, io){
+            var io = io(),
+                starCamera = false,
+                video = d.querySelector('#video'),
+                canvas = d.querySelector('#canvas'),
+                context = canvas.getContext('2d')
+
+            n.streaming = (
+                n.getUserMedia ||
+                n.webKitGetUserMedia ||
+                n.mozGetUserMedia ||
+                n.msGetUserMedia
+            )
+
+            n.streaming({
+                video: true,
+                audio: true
+            }, 
+            function(stream) {
+                starCamera = true 
+                video.srcObject  = stream   
+            }, 
+            function (error) {
+                alert('Error al acceder a la camara web ' + error)
+            })
+
+            w.playVideo = (
+                function (cb) {
+                    return w.requestAnimationFrame ||
+                            w.webkitRequestAnimationFrame ||
+                            w.mozRequestAnimationFrame ||
+                            w.msRequestAnimationFrame ||
+                            function (cb) {
+                                w.setTimeout(cb, 1000/100)
+                            }
+                }
+            )()
+
+            function streamVideo(context, canvas, video) {
+                
+                var outputStream = canvas.toDataURL('image/jpeg', .2)
+                context.drawImage(video, 0, 0)
+
+                if(starCamera)
+                    io.emit('streaming', outputStream)
+
+                playVideo(function (params) {
+                    streamVideo(context, canvas, video)
+                })
+            }
+
+            w.addEventListener('load', function () {
+                video.autoplay= true
+                video.style.display = 'none'
+                streamVideo(context, canvas, video)
+            })
+
+            
+        }(document, navigator, window, io))
+    </script>
+</body>
+</html>
