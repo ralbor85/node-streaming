@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --exec src/index ",
+    "dev": "concurrently \"npm run server\" \"npm run start\"",
+    "server": "node src/loaders/server.js",
+    "build": "babel src -d dist"
   },
   "keywords": [],
   "author": "",
